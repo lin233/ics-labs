@@ -1,0 +1,57 @@
+#name:李珊
+#ID：516030910175
+
+#Execution begins at address 0 
+
+	.pos 0
+	irmovq stack, %rsp
+	call main
+	halt
+
+.align 8 
+# Source block 
+src: 
+	.quad 0x00a 
+	.quad 0x0b0 
+	.quad 0xc00
+
+# Destination block 
+dest: 
+	.quad 0x111 
+	.quad 0x222 
+	.quad 0x333
+
+
+main:
+	irmovq src, %rdi
+	irmovq dest, %rsi
+	irmovq 3, %rdx
+	call	copy_block
+	ret
+
+#long copy_block(long *src, long *dest, long len)
+
+copy_block:
+	irmovq  8, %r10
+	irmovq  1,%r11
+	irmovq  0, %rax				
+	rrmovq  %rdx, %rbx		
+	andq 	%rbx, %rbx		#set CC	
+	jmp 	test			#while
+
+loop:
+	mrmovq 0(%rdi),%rcx		# val = *src
+	addq %r10,%rdi			# src ++ 
+	rmmovq %rcx, 0(%rsi)		# *dest = val
+	addq %r10,%rsi			# dest ++ 
+	xorq %rcx, %rax			# result^=val
+	subq %r11,%rbx			# len-1
+
+test: 
+	jg loop				#while(len>0) loop
+	ret
+
+
+#Stack 
+	.pos 0x200
+stack:
