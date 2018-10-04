@@ -1,0 +1,205 @@
+#/* $begin ncopy-ys */
+##################################################################
+# ncopy.ys - Copy a src block of len words to dst.
+# Return the number of positive words (>0) contained in src.
+#
+
+# Include your name and ID here.
+# name:李珊 ID:516030910175
+# Describe how and why you modified the baseline code.
+#
+#1.把循环展开，一个循环里有八次，然后再对<8的情况做处理
+#2.把rmmovq和mrmovq分开 
+#3.JXX预测总是往可能性大的方向去
+#4.iaddq代替irmovq+iopq
+#5.避免不必要的跳转
+##################################################################
+# Do not modify this portion
+# Function prologue.
+# %rdi = src, %rsi = dst, %rdx = len
+ncopy:
+
+##################################################################
+# You can modify this portion
+	# Loop header
+
+	iaddq -8,%rdx		#>=7
+	jge Np				
+	iaddq 8,%rdx		#>1
+	jg   Jt6
+	ret
+	
+Jt6:
+
+Jp1:
+	mrmovq (%rdi), %r14		
+	iaddq -1,%rdx
+	rmmovq %r14, (%rsi)
+	jg Jp2
+	andq %r14, %r14		# val <= 0?
+	jle Done		# if so, goto Npos:
+	iaddq 1, %rax		# count++
+	ret
+
+Jp2:
+	mrmovq 8(%rdi), %r13
+	iaddq -1,%rdx
+	rmmovq %r13, 8(%rsi)		
+	jg Jp3
+	andq %r13, %r13		# val <= 0?
+	jle J1			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+	andq %r14, %r14		# val <= 0?
+	jle Done		# if so, goto Npos:
+	iaddq 1, %rax		# count++
+	ret
+
+Jp3:
+	mrmovq 16(%rdi), %r12
+	iaddq -1,%rdx
+	rmmovq %r12, 16(%rsi)		
+	jg Jp4
+	jmp J3
+	
+Jp4:	mrmovq 24(%rdi), %r11	# read val from src...
+	iaddq -1,%rdx
+	rmmovq %r11, 24(%rsi)	# ...and store it to dst	
+	jg Jp5
+	jmp J4
+
+Jp5:
+	mrmovq 32(%rdi), %r10
+	iaddq -1,%rdx
+	rmmovq %r10, 32(%rsi)		
+	jg Jp6
+	jmp J5
+
+
+Jp6:
+	mrmovq 40(%rdi), %r9
+	iaddq -1,%rdx
+	rmmovq %r9, 40(%rsi)		
+	jg Jp7
+	jmp J6
+
+Jp7:
+	mrmovq 48(%rdi), %r8
+	rmmovq %r8, 48(%rsi)	
+	
+
+	andq %r8, %r8		# val <= 0?
+	jle J6		# if so, goto Npos:
+	iaddq 1, %rax		# count++
+		
+
+J6:	andq %r9, %r9		# val <= 0?
+	jle J5			# if so, goto Npos:	
+	iaddq 1, %rax		# count++
+	
+J5:	andq %r10, %r10		# val <= 0?
+	jle J4			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+J4:	andq %r11, %r11		# val <= 0?
+	jle J3			# if so, goto Npos:
+	iaddq 1, %rax		# count++	
+
+J3:	andq %r12, %r12		# val <= 0?
+	jle J2			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+J2:	andq %r13, %r13		# val <= 0?
+	jle J1			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+J1:	andq %r14, %r14		# val <= 0?
+	jle Done		# if so, goto Npos:
+	iaddq 1, %rax		# count++
+	ret
+
+Np:	
+	
+	mrmovq 56(%rdi), %r12	# read val from src...
+	mrmovq 48(%rdi), %r13
+	mrmovq 40(%rdi), %r14
+	mrmovq 32(%rdi), %r9		
+	mrmovq 24(%rdi), %r10	# read val from src...
+	mrmovq 16(%rdi), %r11
+	mrmovq 8(%rdi), %r8
+	mrmovq (%rdi), %rbx	
+
+	rmmovq %r12, 56(%rsi)	# ...and store it to dst
+	rmmovq %r13, 48(%rsi)	
+	rmmovq %r14, 40(%rsi)
+	rmmovq %r9, 32(%rsi)
+	rmmovq %r10, 24(%rsi)	# ...and store it to dst
+	rmmovq %r11, 16(%rsi)	
+	rmmovq %r8, 8(%rsi)
+	rmmovq %rbx, (%rsi)
+
+Np8:		
+	andq %r12, %r12		# val <= 0?
+	jle Np7			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+Np7:
+	
+	andq %r13, %r13		# val <= 0?
+	jle Np6			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+Np6:
+		
+	andq %r14, %r14		# val <= 0?
+	jle Np5			# if so, goto Npos:	
+	iaddq 1, %rax		# count++
+
+Np5:
+		
+	andq %r9, %r9		# val <= 0?
+	jle Np4			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+Np4:	
+	
+	andq %r10, %r10		# val <= 0?
+	jle Np3			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+Np3:
+	
+	andq %r11, %r11		# val <= 0?
+	jle Np2			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+Np2:
+	
+	andq %r8, %r8		# val <= 0?
+	jle Np1			# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+Np1:
+	
+	andq %rbx, %rbx		# val <= 0?
+	jle Npos		# if so, goto Npos:
+	iaddq 1, %rax		# count++
+
+Npos:	
+	iaddq 64, %rdi		# src++
+	iaddq 64, %rsi		# dst++
+Lis:	iaddq -8,%rdx		# len >= 8?
+	jge Np			# if so, goto Loop:
+	iaddq 8, %rdx		# 6-9
+	jg Jt6
+
+
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+	ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end ncopy-ys */

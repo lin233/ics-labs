@@ -1,0 +1,63 @@
+#name:李珊
+#ID：516030910175
+
+#Execution begins at address 0 
+
+	.pos 0
+	irmovq stack, %rsp
+	call main
+	halt
+
+#list 
+.align 8 
+ele1:
+	.quad 0x00a 
+	.quad ele2
+
+ele2:
+	.quad 0x0b0 
+	.quad ele3
+
+ele3:
+	.quad 0xc00 
+	.quad 0
+
+main:
+	irmovq ele1, %rdi
+	call sum_list
+	ret
+
+#long sum_list(list_ptr ls)
+
+sum_list:
+	irmovq 0, %rax			#long var = 0	
+	rrmovq %rdi, %rcx		#ls
+	andq 	%rcx, %rcx		
+	jmp 	test
+
+loop: 
+	mrmovq  0(%rcx), %rbx		#ls->val
+	addq 	%rbx, %rax		#val += ls->val
+	mrmovq  8(%rcx), %rcx		#ls->next	
+	andq 	%rcx, %rcx
+
+test: 
+	jne loop
+	ret
+
+#Stack 
+	.pos 0x200
+stack:
+
+
+	
+
+
+
+
+
+
+	
+
+
+
